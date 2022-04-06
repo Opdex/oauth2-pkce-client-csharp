@@ -3,7 +3,7 @@
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo><!-- setting GenerateAssemblyInfo to false causes this bug https://github.com/dotnet/project-system/issues/3934 -->
     <AssemblyName>OAuth2.PKCE.Client</AssemblyName>
-    <PackageId>OAuth2.PKCE.Client</PackageId>
+    <PackageId>OAuth2PKCEClient</PackageId>
     <Authors>Opdex Contributors</Authors>
     <AssemblyTitle>OAuth2 PKCE Client</AssemblyTitle>
     <Description>Client for the OAuth2 PKCE flow described in RFC7636</Description>
