@@ -10,7 +10,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace OAuth.PKCE.Client;
+namespace OAuth2.PKCE.Client;
 
 /// <summary>
 /// A client for an OAuth2 PKCE flow.

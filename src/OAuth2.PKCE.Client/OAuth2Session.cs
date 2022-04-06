@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
-namespace OAuth.PKCE.Client;
+namespace OAuth2.PKCE.Client;
 
 /// <summary>
 /// An individual login session.

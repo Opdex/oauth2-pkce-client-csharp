@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace OAuth.PKCE.Client;
+namespace OAuth2.PKCE.Client;
 
 public static class OAuthPkceClientServiceCollectionExtensions
 {

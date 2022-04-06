@@ -1,4 +1,4 @@
-namespace OAuth.PKCE.Client;
+namespace OAuth2.PKCE.Client;
 
 /// <summary>
 /// Configuration options for OAuth2 endpoint paths, as defined in RFC6749.

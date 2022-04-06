@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace OAuth.PKCE.Client;
+namespace OAuth2.PKCE.Client;
 
 public static class KeyGenerator
 {

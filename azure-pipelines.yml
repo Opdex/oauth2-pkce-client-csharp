@@ -1,0 +1,51 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-20.04'
+
+variables:
+  SOLUTION: '**/*.sln'
+  BUILD_CONFIGURATION: 'Release'
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '6.0.x'
+    displayName: Use .NET 6.0
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'restore'
+      projects: $(SOLUTION)
+    displayName: Restore
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: $(SOLUTION)
+      arguments: '--configuration $(BUILD_CONFIGURATION) --no-restore'
+    displayName: 'Build'
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      projects: '**/*.Test.csproj'
+      arguments: '--configuration $(BUILD_CONFIGURATION) --no-build'
+    displayName: 'Unit Test'
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'pack'
+      packagesToPack: 'src/OAuth2.PKCE.Client/*.csproj'
+      arguments: '--configuration $(BUILD_CONFIGURATION) --no-build --include-symbols'
+      versioningScheme: 'off'
+      packDirectory: '$(Build.ArtifactStagingDirectory)'
+    displayName: 'Pack'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+      publishLocation: 'pipeline'
+    displayName: 'Publish Artifact'
