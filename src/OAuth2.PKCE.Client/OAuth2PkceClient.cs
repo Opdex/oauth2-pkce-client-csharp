@@ -17,9 +17,7 @@ namespace OAuth2.PKCE.Client;
 /// </summary>
 public class OAuth2PkceClient
 {
-    private const string BaseUrl = "https://localhost:9711";
-    private const string RedirectPath = "/success";
-    internal const string RedirectUri = BaseUrl + RedirectPath;
+    internal const string RedirectPath = "/success";
 
     private readonly HttpClient _httpClient;
     private readonly string? _clientId;
@@ -30,6 +28,7 @@ public class OAuth2PkceClient
     /// Creates a client for the OAuth2 PKCE flow.
     /// </summary>
     /// <param name="httpClient">A HTTP client configured for making requests to the target OAuth2 server.</param>
+    /// <param name="clientId">Value to send with requests as the client_id.</param>
     /// <param name="pathOptions">Configuration options for the endpoint paths.</param>
     public OAuth2PkceClient(HttpClient httpClient, string? clientId = null, OAuth2PathOptions? pathOptions = null)
     {
@@ -54,7 +53,7 @@ public class OAuth2PkceClient
     /// <returns>The authorize request session. Use this to begin the authorization flow.</returns>
     public async Task<OAuth2Session> BeginLoginSessionAsync(Action<JwtSecurityToken> onSuccess, Action? onFailure = null, CancellationToken cancellationToken = default)
     {
-        var webServer = SetupWebServer();
+        var webServer = _webServerBuilder.Build();
         var authSession = new OAuth2Session(webServer, _httpClient.BaseAddress + _pathOptions.Authorize, _clientId);
 
         webServer.MapGet(RedirectPath, async ([FromQuery] string code, [FromQuery] string state) =>
@@ -111,20 +110,5 @@ public class OAuth2PkceClient
         }
 
         return authSession;
-    }
-
-    private WebApplication SetupWebServer()
-    {
-        var webServer = _webServerBuilder.Build();
-        webServer.Urls.Clear();
-        webServer.Urls.Add(BaseUrl);
-
-        webServer.Use(async (context, next) =>
-        {
-            await next();
-            if (context.Request.Path == RedirectPath) await webServer.StopAsync(); // stop server on completion of flow
-        });
-
-        return webServer;
     }
 }

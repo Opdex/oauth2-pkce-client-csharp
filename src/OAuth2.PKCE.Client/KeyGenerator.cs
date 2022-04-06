@@ -4,10 +4,18 @@ using System.Text;
 
 namespace OAuth2.PKCE.Client;
 
+/// <summary>
+/// Generates pseudorandom keys
+/// </summary>
 public static class KeyGenerator
 {
     private static readonly char[] CharacterSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
 
+    /// <summary>
+    /// Creates a pseudorandom string of a desired length
+    /// </summary>
+    /// <param name="size">Desired ength of the string</param>
+    /// <returns>Random string</returns>
     public static string Random(int size)
     {
         byte[] data = new byte[4 * size];

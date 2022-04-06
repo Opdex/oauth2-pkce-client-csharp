@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -20,7 +22,9 @@ public sealed class OAuth2Session : IAsyncDisposable
 
     internal OAuth2Session(WebApplication webServer, string url, string? clientId = "")
     {
-        _webServer = webServer;
+        var baseAddress = "https://localhost:" + GetRandomUnusedPort();
+
+        _webServer = ConfigureWebServer(webServer, baseAddress);
 
         CodeVerifier = Base64UrlEncoder.Encode(KeyGenerator.Random(32));
         ClientId = clientId is null ? KeyGenerator.Random(16) : clientId;
@@ -30,7 +34,7 @@ public sealed class OAuth2Session : IAsyncDisposable
         {
             { "response_type", "code" },
             { "client_id", ClientId },
-            { "redirect_uri", OAuth2PkceClient.RedirectUri },
+            { "redirect_uri", baseAddress + OAuth2PkceClient.RedirectPath },
             { "code_challenge", Base64UrlEncoder.Encode(sha256.ComputeHash(Encoding.ASCII.GetBytes(CodeVerifier))) },
             { "code_challenge_method", "S256" },
             { "state", State },
@@ -53,5 +57,29 @@ public sealed class OAuth2Session : IAsyncDisposable
     /// <returns></returns>
     public async Task WaitForCompletionAsync(CancellationToken cancellationToken = default) => await _webServer.WaitForShutdownAsync(cancellationToken);
 
+    /// <inheritdoc />
     public async ValueTask DisposeAsync() => await _webServer.DisposeAsync();
+
+    private static WebApplication ConfigureWebServer(WebApplication webServer, string baseAddress)
+    {
+        webServer.Urls.Clear();
+        webServer.Urls.Add(baseAddress);
+        webServer.Use(async (context, next) =>
+        {
+            await next();
+            if (context.Request.Path == OAuth2PkceClient.RedirectPath) await webServer.StopAsync(); // stop server on completion of flow
+        });
+        return webServer;
+    }
+
+    private static int GetRandomUnusedPort()
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        listener.Stop();
+
+        return port;
+    }
 }
