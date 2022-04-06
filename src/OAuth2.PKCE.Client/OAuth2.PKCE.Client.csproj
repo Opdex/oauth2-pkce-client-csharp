@@ -8,7 +8,7 @@
     <AssemblyTitle>OAuth2 PKCE Client</AssemblyTitle>
     <Description>Client for the OAuth2 PKCE flow described in RFC7636</Description>
     <RootNamespace>OAuth2.PKCE.Client</RootNamespace>
-    <Version>1.0.0-beta1</Version>
+    <Version>1.0.0-beta2</Version>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\OAuth2.PKCE.Client.xml</DocumentationFile>
     <PackageTags>oauth2;pkce;rfc7636</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
