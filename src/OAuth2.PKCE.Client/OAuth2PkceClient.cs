@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using O9d.Json.Formatting;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +18,12 @@ namespace OAuth2.PKCE.Client;
 /// </summary>
 public class OAuth2PkceClient
 {
+    private static readonly JsonSerializerOptions SerializationOptions = new()
+    {
+        PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy(),
+        Converters = { new JwtSecurityTokenConverter() }
+    };
+
     internal const string RedirectPath = "/success";
 
     private readonly HttpClient _httpClient;
@@ -41,7 +48,7 @@ public class OAuth2PkceClient
     }
 
     /// <summary>
-    /// Starts the OAuth2 PKCE login flow.
+    /// Starts the OAuth2 PKCE login flow using the authorization_code grant type.
     /// </summary>
     /// <remarks>
     /// This will launch a web server that will be the target of a redirect upon completion of authorization.
@@ -51,7 +58,7 @@ public class OAuth2PkceClient
     /// <param name="onFailure">Invoked if an unexpected failure occurs, or the task is cancelled.</param>
     /// <param name="cancellationToken">Token which can be used to trigger cancellation.</param>
     /// <returns>The authorize request session. Use this to begin the authorization flow.</returns>
-    public async Task<OAuth2Session> BeginLoginSessionAsync(Action<JwtSecurityToken> onSuccess, Action? onFailure = null, CancellationToken cancellationToken = default)
+    public async Task<OAuth2Session> BeginLoginSessionAsync(Action<AuthTokens> onSuccess, Action? onFailure = null, CancellationToken cancellationToken = default)
     {
         var webServer = _webServerBuilder.Build();
         var authSession = new OAuth2Session(webServer, _httpClient.BaseAddress + _pathOptions.Authorize, _clientId);
@@ -64,10 +71,9 @@ public class OAuth2PkceClient
                 return Results.BadRequest("Authentication result was malformed");
             }
 
-            JwtSecurityToken jwt;
+            AuthTokens authTokens;
             try
             {
-                string? token;
                 using var httpClient = new HttpClient();
                 {
                     var request = new HttpRequestMessage(HttpMethod.Post, _httpClient.BaseAddress + _pathOptions.Token)
@@ -81,12 +87,9 @@ public class OAuth2PkceClient
                             new KeyValuePair<string, string>("client_id", authSession.ClientId),
                         })
                     };
-                    var response = await httpClient.SendAsync(request);
-                    token = await response.Content.ReadFromJsonAsync<string>();
+                    var response = await httpClient.SendAsync(request, cancellationToken);
+                    authTokens = (await response.Content.ReadFromJsonAsync<AuthTokens>(SerializationOptions, cancellationToken))!;
                 }
-
-                var handler = new JwtSecurityTokenHandler();
-                jwt = handler.ReadJwtToken(token);
             }
             catch
             {
@@ -94,7 +97,7 @@ public class OAuth2PkceClient
                 throw;
             }
 
-            onSuccess.Invoke(jwt);
+            onSuccess.Invoke(authTokens);
 
             return Results.Text("Authentication succeeded");
         });
@@ -110,5 +113,30 @@ public class OAuth2PkceClient
         }
 
         return authSession;
+    }
+
+    /// <summary>
+    /// Exchanges a refresh token for a new access token.
+    /// </summary>
+    /// <remarks>
+    /// This is useful for when the access token has expired and needs to be refreshed.
+    /// </remarks>
+    /// <param name="refreshToken">Refresh token that was received from the most recent token response.</param>
+    /// <param name="cancellationToken">Token which can be used to trigger cancellation.</param>
+    /// <returns>The token response, or null if the OAuth server returned an error.</returns>
+    public async Task<AuthTokens?> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        using var httpClient = new HttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, _httpClient.BaseAddress + _pathOptions.Token)
+        {
+            Content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("grant_type", "refresh_token"),
+                new KeyValuePair<string, string>("refresh_token", refreshToken)
+            })
+        };
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<AuthTokens>(SerializationOptions, cancellationToken);
     }
 }

@@ -8,7 +8,7 @@
     <AssemblyTitle>OAuth2 PKCE Client</AssemblyTitle>
     <Description>Client for the OAuth2 PKCE flow described in RFC7636</Description>
     <RootNamespace>OAuth2.PKCE.Client</RootNamespace>
-    <Version>1.0.0-beta2</Version>
+    <Version>1.0.0-beta3</Version>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\OAuth2.PKCE.Client.xml</DocumentationFile>
     <PackageTags>oauth2;pkce;rfc7636</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -33,6 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="O9d.Json.Formatting" Version="0.1.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.17.0" />
   </ItemGroup>
 
