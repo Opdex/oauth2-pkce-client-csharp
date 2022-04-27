@@ -54,7 +54,6 @@ public sealed class OAuth2Session : IAsyncDisposable
     /// Returns a <see cref="Task" /> that completes when the current OAuth2 login session ends or is cancelled.
     /// </summary>
     /// <param name="cancellationToken">Token which can be used to trigger cancellation.</param>
-    /// <returns></returns>
     public async Task WaitForCompletionAsync(CancellationToken cancellationToken = default) => await _webServer.WaitForShutdownAsync(cancellationToken);
 
     /// <inheritdoc />

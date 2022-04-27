@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace OAuth2.PKCE.Client;
 
 /// <summary>
-/// Extensions for configuring <see cref="OAuth2PkceClient" /> with dependendy injection
+/// Extensions for configuring <see cref="OAuth2PkceClient" /> with dependendy injection.
 /// </summary>
 public static class OAuthPkceClientServiceCollectionExtensions
 {

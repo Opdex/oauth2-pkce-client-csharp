@@ -7,21 +7,7 @@ namespace OAuth2.PKCE.Client;
 /// <summary>
 /// Contains response values returned by the token endpoint.
 /// </summary>
-public record AuthTokens
-{
-    /// <summary>
-    /// JWT access token issued by the OAuth server.
-    /// </summary>
-    public JwtSecurityToken AccessToken { get; init; }
-    
-    /// <summary>
-    /// Expiry time for the access token.
-    /// </summary>
-    [JsonConverter(typeof(SecondsTimeSpanJsonConverter))]
-    public TimeSpan ExpiresIn { get; init; }
-
-    /// <summary>
-    /// Refresh token that can be used to generate a new access token.
-    /// </summary>
-    public string RefreshToken { get; init; }
-}
+/// <param name="AccessToken">JWT access token issued by the OAuth server.</param>
+/// <param name="ExpiresIn">Expiry time for the access token.</param>
+/// <param name="RefreshToken">Refresh token that can be used to generate a new access token.</param>
+public record AuthTokens(JwtSecurityToken AccessToken, [property: JsonConverter(typeof(SecondsTimeSpanJsonConverter))] TimeSpan ExpiresIn, string RefreshToken);
